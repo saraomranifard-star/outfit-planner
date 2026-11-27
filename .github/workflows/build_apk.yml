@@ -1,0 +1,55 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Generate Android project files
+        run: |
+          mkdir temp_app
+          cd temp_app
+          flutter create --org com.outfitplanner --project-name outfit_planner .
+          cp -r android ../android
+          cd ..
+          rm -rf temp_app
+          cp AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+
+      - name: Enable Core Library Desugaring
+        run: |
+          python3 -c '
+          import os
+          kts = "android/app/build.gradle.kts"
+          groovy = "android/app/build.gradle"
+          if os.path.exists(kts):
+              s = open(kts).read()
+              s = s.replace("compileOptions {", "compileOptions {\n        isCoreLibraryDesugaringEnabled = true")
+              s += "\ndependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")\n}\n"
+              open(kts, "w").write(s)
+          elif os.path.exists(groovy):
+              s = open(groovy).read()
+              s = s.replace("compileOptions {", "compileOptions {\n        coreLibraryDesugaringEnabled true")
+              s += "\ndependencies {\n    coreLibraryDesugaring \"com.android.tools:desugar_jdk_libs:2.1.4\"\n}\n"
+              open(groovy, "w").write(s)
+          '
+
+      - name: Build APK
+        run: |
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OutfitPlanner-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
