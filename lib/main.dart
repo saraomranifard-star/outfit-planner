@@ -1056,7 +1056,7 @@ class _CalendarTabState extends State<CalendarTab> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: widget.onTestNotification,
-                    icon: const Icon(Icons.notifications_ring_volume_outlined,
+                    icon: const Icon(Icons.notifications_active,
                         size: 18, color: AppColors.textPrimary),
                     label: const Text('Test Reminder Notification Now',
                         style: TextStyle(color: AppColors.textPrimary)),
