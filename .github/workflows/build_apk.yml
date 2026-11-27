@@ -25,7 +25,7 @@ jobs:
           rm -rf temp_app
           cp AndroidManifest.xml android/app/src/main/AndroidManifest.xml
 
-      - name: Enable Core Library Desugaring
+      - name: Configure Android Gradle
         run: |
           python3 -c '
           import os
@@ -33,12 +33,25 @@ jobs:
           groovy = "android/app/build.gradle"
           if os.path.exists(kts):
               s = open(kts).read()
+              s = s.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
+              s = s.replace("minSdk = flutter.minSdkVersion", "minSdk = 23")
+              s = s.replace("targetSdk = flutter.targetSdkVersion", "targetSdk = 35")
               s = s.replace("compileOptions {", "compileOptions {\n        isCoreLibraryDesugaringEnabled = true")
+              s = s.replace("defaultConfig {", "defaultConfig {\n        multiDexEnabled = true")
+              s = s.replace("release {", "release {\n            isMinifyEnabled = false\n            isShrinkResources = false")
               s += "\ndependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")\n}\n"
               open(kts, "w").write(s)
           elif os.path.exists(groovy):
               s = open(groovy).read()
+              s = s.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
+              s = s.replace("compileSdkVersion flutter.compileSdkVersion", "compileSdkVersion 36")
+              s = s.replace("minSdk = flutter.minSdkVersion", "minSdk = 23")
+              s = s.replace("minSdkVersion flutter.minSdkVersion", "minSdkVersion 23")
+              s = s.replace("targetSdk = flutter.targetSdkVersion", "targetSdk = 35")
+              s = s.replace("targetSdkVersion flutter.targetSdkVersion", "targetSdkVersion 35")
               s = s.replace("compileOptions {", "compileOptions {\n        coreLibraryDesugaringEnabled true")
+              s = s.replace("defaultConfig {", "defaultConfig {\n        multiDexEnabled true")
+              s = s.replace("release {", "release {\n            minifyEnabled false\n            shrinkResources false")
               s += "\ndependencies {\n    coreLibraryDesugaring \"com.android.tools:desugar_jdk_libs:2.1.4\"\n}\n"
               open(groovy, "w").write(s)
           '
